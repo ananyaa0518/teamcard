@@ -198,7 +198,7 @@ export default function HeroSection() {
 
                 <motion.div
                     ref={stackRef}
-                    className="relative w-[260px] sm:w-[280px] md:w-[320px] h-[440px]"
+                    className="relative w-[280px] sm:w-[320px] md:w-[380px] h-[280px] sm:h-[320px] md:h-[380px]"
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
                     onMouseEnter={() => isHoveredTop.set(1)}
@@ -208,9 +208,12 @@ export default function HeroSection() {
                         {cards.map((card, index) => {
                             const isTop = index === 0;
                             const offset = Math.min(index, 9);
-                            const yOffset = offset * 10;
+                            // Set yOffset to 0 so cards only peek out via right/left rotation
+                            const yOffset = 0;
                             const scale = 1 - offset * 0.03;
-                            const baseOpacity = isTop ? 1 : Math.max(0.3, 0.7 - offset * 0.08);
+                            // Fade out cards sharply so only the first 3-4 are visibly stacked
+                            const baseOpacity = isTop ? 1 : Math.max(0, 0.9 - offset * 0.25);
+                            const baseRotateZ = isTop ? 0 : (index % 2 === 1 ? -4 : 4);
 
                             return (
                                 <motion.div
@@ -226,21 +229,21 @@ export default function HeroSection() {
                                         rotateX: isTop ? rotateX : 0,
                                         rotateY: isTop ? rotateY : 0,
                                         boxShadow: isTop ? boxShadow : "0 20px 60px rgba(0,0,0,0.8)",
-                                        borderRadius: 80,
+                                        borderRadius: 24,
                                         transformStyle: "preserve-3d",
                                         willChange: "transform",
                                     }}
                                     initial={
                                         index === 0
                                             ? { opacity: 0, y: 40, scale: 0.9, x: 0, rotateZ: 0 }
-                                            : { opacity: 0, y: yOffset + 30, scale: scale * 0.94, x: 0, rotateZ: 0 }
+                                            : { opacity: 0, y: yOffset + 30, scale: scale * 0.94, x: 0, rotateZ: baseRotateZ }
                                     }
                                     animate={{
                                         y: yOffset,
                                         scale,
                                         opacity: baseOpacity,
                                         x: 0,
-                                        rotateZ: 0,
+                                        rotateZ: baseRotateZ,
                                     }}
                                     exit={getExitAnimation(index)}
                                     transition={{
@@ -264,7 +267,7 @@ export default function HeroSection() {
                                     <div
                                         className="relative h-full w-full overflow-hidden"
                                         style={{
-                                            borderRadius: 80,
+                                            borderRadius: 24,
                                             backgroundColor: "#0B0B0B",
                                             border: "1px solid rgba(212, 168, 74, 0.3)",
                                             boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)",
@@ -286,16 +289,18 @@ export default function HeroSection() {
                                             transition={{ duration: 0.5, ease: "easeInOut" }}
                                         />
 
-                                        {/* Top gradient for readability */}
-                                        <div
-                                            className="pointer-events-none absolute inset-0"
-                                            style={{
-                                                background:
-                                                    "linear-gradient(to bottom, rgba(11,11,11,0.2), transparent 45%, rgba(11,11,11,0.95) 100%)",
-                                            }}
-                                        />
-
-
+                                        {/* Bottom text overlay (Name & Role) */}
+                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6 flex flex-col justify-end">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                                                    Silver George
+                                                </h3>
+                                                <span className="text-lg">🇳🇬</span>
+                                            </div>
+                                            <p className="text-[11px] md:text-[12px] font-bold tracking-[0.15em] text-white/80 uppercase">
+                                                Product Designer
+                                            </p>
+                                        </div>
                                     </div>
                                 </motion.div>
                             );

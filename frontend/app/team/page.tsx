@@ -1,10 +1,8 @@
-import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 
 export default function TeamPage() {
   return (
     <main className="relative">
-      <Navbar />
       <HeroSection />
 
       {/* Next section placeholder for scroll morphing */}

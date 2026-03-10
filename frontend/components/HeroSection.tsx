@@ -68,7 +68,7 @@ export default function HeroSection() {
 
     const shadowSpread = useTransform(isHoveredTop, [0, 1], [18, 40]);
     const shadowBlur = useTransform(isHoveredTop, [0, 1], [40, 90]);
-    const boxShadow = useMotionTemplate`0 ${shadowSpread}px ${shadowBlur}px rgba(120, 60, 120, 0.40)`;
+    const boxShadow = useMotionTemplate`0 ${shadowSpread}px ${shadowBlur}px rgba(212, 168, 74, 0.15)`;
 
     function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
         if (!stackRef.current) return;
@@ -154,7 +154,7 @@ export default function HeroSection() {
         <section
             className="relative min-h-screen flex items-center justify-center overflow-hidden px-6"
             style={{
-                background: "linear-gradient(160deg, #f9caca 0%, #f6b6b6 40%, #e7a4a6 100%)",
+                backgroundColor: "#000000",
             }}
         >
             {/* Soft blobs */}
@@ -162,14 +162,14 @@ export default function HeroSection() {
                 <div
                     className="absolute -left-32 -top-40 h-[420px] w-[420px] rounded-full"
                     style={{
-                        background: "radial-gradient(circle, rgba(255,200,210,0.8) 0%, transparent 70%)",
+                        background: "radial-gradient(circle, rgba(242, 201, 76, 0.1) 0%, transparent 70%)",
                         filter: "blur(60px)",
                     }}
                 />
                 <div
                     className="absolute -right-40 bottom-[-120px] h-[460px] w-[460px] rounded-full"
                     style={{
-                        background: "radial-gradient(circle, rgba(230,150,170,0.65) 0%, transparent 70%)",
+                        background: "radial-gradient(circle, rgba(232, 183, 75, 0.08) 0%, transparent 70%)",
                         filter: "blur(80px)",
                     }}
                 />
@@ -177,36 +177,24 @@ export default function HeroSection() {
 
             {/* Grain overlay */}
             <div
-                className="pointer-events-none absolute inset-0 opacity-40 mix-blend-soft-light"
+                className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-screen"
                 style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
                 }}
             />
 
-            {/* Background heading */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <h1
-                    className="select-none text-center"
-                    style={{
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: "clamp(64px, 11vw, 168px)",
-                        fontWeight: 900,
-                        color: "rgba(255,255,255,0.22)",
-                        letterSpacing: "-0.04em",
-                        lineHeight: 0.9,
-                        textShadow: "0 26px 80px rgba(180,100,120,0.32)",
-                        whiteSpace: "nowrap",
-                    }}
+            {/* Top Header */}
+            <div className="absolute top-10 w-full flex justify-center z-40">
+                <h2
+                    className="text-3xl md:text-5xl font-medium text-[#D4A84A] tracking-wide"
+                    style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}
                 >
-                    Take a Spin
-                </h1>
+                    Meet Our Team
+                </h2>
             </div>
 
             {/* Center stack */}
-            <div className="relative z-20 flex flex-col items-center gap-6">
-                <div className="mb-4 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase">
-                    Curated looks, one swipe away
-                </div>
+            <div className="relative z-20 flex flex-col items-center pt-8 md:pt-12">
 
                 <motion.div
                     ref={stackRef}
@@ -237,7 +225,7 @@ export default function HeroSection() {
                                         pointerEvents: isTop ? "auto" : "none",
                                         rotateX: isTop ? rotateX : 0,
                                         rotateY: isTop ? rotateY : 0,
-                                        boxShadow: isTop ? boxShadow : "0 20px 60px rgba(170,90,120,0.45)",
+                                        boxShadow: isTop ? boxShadow : "0 20px 60px rgba(0,0,0,0.8)",
                                         borderRadius: 80,
                                         transformStyle: "preserve-3d",
                                         willChange: "transform",
@@ -277,16 +265,16 @@ export default function HeroSection() {
                                         className="relative h-full w-full overflow-hidden"
                                         style={{
                                             borderRadius: 80,
-                                            background: "linear-gradient(145deg, rgba(255,255,255,0.35), rgba(255,255,255,0.18))",
-                                            border: "1px solid rgba(255,255,255,0.45)",
-                                            backdropFilter: "blur(24px)",
+                                            backgroundColor: "#0B0B0B",
+                                            border: "1px solid rgba(212, 168, 74, 0.3)",
+                                            boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)",
                                         }}
                                     >
                                         {/* Parallax image */}
                                         <motion.img
                                             src={card.image}
                                             alt="Curated fashion look"
-                                            className="absolute inset-0 h-full w-full object-cover object-top"
+                                            className="absolute inset-0 h-full w-full object-cover object-top opacity-80 mix-blend-luminosity"
                                             style={{
                                                 x: isTop ? imageX : 0,
                                                 y: isTop ? imageY : 0,
@@ -298,24 +286,16 @@ export default function HeroSection() {
                                             transition={{ duration: 0.5, ease: "easeInOut" }}
                                         />
 
-                                        {/* Top gradient */}
+                                        {/* Top gradient for readability */}
                                         <div
                                             className="pointer-events-none absolute inset-0"
                                             style={{
                                                 background:
-                                                    "linear-gradient(to bottom, rgba(255,255,255,0.55), transparent 45%, rgba(10,7,15,0.6) 100%)",
+                                                    "linear-gradient(to bottom, rgba(11,11,11,0.2), transparent 45%, rgba(11,11,11,0.95) 100%)",
                                             }}
                                         />
 
-                                        {/* Subtle content at bottom */}
-                                        <div className="pointer-events-none absolute inset-x-0 bottom-6 flex flex-col items-center gap-1 text-[11px] font-medium tracking-[0.22em] text-white/80 uppercase">
-                                            <div className="rounded-full border border-white/30 bg-white/10 px-4 py-1 backdrop-blur-sm">
-                                                Next Look
-                                            </div>
-                                            <div className="text-[10px] font-normal tracking-[0.32em] text-white/70">
-                                                Tap to shuffle the deck
-                                            </div>
-                                        </div>
+
                                     </div>
                                 </motion.div>
                             );
@@ -323,12 +303,7 @@ export default function HeroSection() {
                     </AnimatePresence>
                 </motion.div>
 
-                <p
-                    className="max-w-xs text-center text-[13px] leading-relaxed text-white/80"
-                    style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}
-                >
-                    An interactive stack of curated outfits—tap the top card to spin the deck and discover the next look.
-                </p>
+
             </div>
         </section>
     );

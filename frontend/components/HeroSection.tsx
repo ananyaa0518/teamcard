@@ -28,7 +28,11 @@ type Card = {
     image: string;
 };
 
-export default function HeroSection() {
+interface HeroSectionProps {
+    onTransitionComplete?: () => void;
+}
+
+export default function HeroSection({ onTransitionComplete }: HeroSectionProps) {
     const initialCards: Card[] = useMemo(
         () =>
             CARD_IMAGES.map((image, index) => ({
@@ -92,12 +96,11 @@ export default function HeroSection() {
     }
 
     function handleExitComplete() {
-        if (isDispersing) {
-            setTimeout(() => {
-                setCards(initialCards);
-                setIsDispersing(false);
-            }, 300);
+        // Find if any cards are left, if array gets completely empty we know we dispersed them all
+        if (cards.length === 0 && onTransitionComplete) {
+            onTransitionComplete();
         }
+        // Remove the setTimeout that resets the cards, so they don't pop back up
     }
 
     const getExitAnimation = (index: number) => {
@@ -183,18 +186,8 @@ export default function HeroSection() {
                 }}
             />
 
-            {/* Top Header */}
-            <div className="absolute top-10 w-full flex justify-center z-40">
-                <h2
-                    className="text-3xl md:text-5xl font-medium text-[#D4A84A] tracking-wide"
-                    style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}
-                >
-                    Meet Our Team
-                </h2>
-            </div>
-
             {/* Center stack */}
-            <div className="relative z-20 flex flex-col items-center pt-8 md:pt-12">
+            <div className="relative z-20 flex flex-col items-center pt-[100px] md:pt-[120px]">
 
                 <motion.div
                     ref={stackRef}

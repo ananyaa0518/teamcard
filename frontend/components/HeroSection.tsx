@@ -39,9 +39,7 @@ export default function HeroSection() {
     );
 
     const [cards, setCards] = useState<Card[]>(initialCards);
-    const [exitingCard, setExitingCard] = useState<Card | null>(null);
-    const [isCycling, setIsCycling] = useState(false);
-    const [exitDirection, setExitDirection] = useState<-1 | 1>(-1);
+    const [isDispersing, setIsDispersing] = useState(false);
 
     const stackRef = useRef<HTMLDivElement | null>(null);
     const mouseX = useMotionValue(0);
@@ -88,21 +86,69 @@ export default function HeroSection() {
     }
 
     function handleTopCardClick() {
-        if (isCycling || cards.length === 0) return;
-        const top = cards[0];
-        setIsCycling(true);
-        setExitingCard(top);
-        setCards((prev) => prev.slice(1));
+        if (isDispersing || cards.length === 0) return;
+        setIsDispersing(true);
+        setCards([]); // Trigger exit for all
     }
 
     function handleExitComplete() {
-        if (exitingCard) {
-            setCards((prev) => [...prev, exitingCard]);
-            setExitingCard(null);
+        if (isDispersing) {
+            setTimeout(() => {
+                setCards(initialCards);
+                setIsDispersing(false);
+            }, 300);
         }
-        setIsCycling(false);
-        setExitDirection((prev) => (prev === -1 ? 1 : -1));
     }
+
+    const getExitAnimation = (index: number) => {
+        if (index === 0) {
+            return {
+                x: [0, -200, -400],
+                y: [0, 10, 20],
+                scale: [1, 0.95, 0.9],
+                opacity: [1, 0.8, 0],
+                rotateZ: [0, -2, -4],
+                transition: {
+                    duration: 0.6,
+                    ease: [0.32, 0.72, 0, 1] as const,
+                    times: [0, 0.5, 1]
+                }
+            };
+        }
+
+        const directions = [
+            { midX: -80, midY: -100, finalX: -200, finalY: -250, rotateZ: -3 },
+            { midX: 80, midY: -100, finalX: 200, finalY: -250, rotateZ: 3 },
+            { midX: -100, midY: 100, finalX: -250, finalY: 250, rotateZ: -4 },
+            { midX: 100, midY: 100, finalX: 250, finalY: 250, rotateZ: 4 },
+            { midX: -150, midY: -30, finalX: -350, finalY: -80, rotateZ: -2 },
+            { midX: 150, midY: 30, finalX: 350, finalY: 80, rotateZ: 2 },
+            { midX: 100, midY: -150, finalX: 200, finalY: -300, rotateZ: 3 },
+            { midX: -100, midY: 150, finalX: -200, finalY: 300, rotateZ: -3 },
+            { midX: 0, midY: 150, finalX: -50, finalY: 350, rotateZ: -2 },
+        ];
+
+        const dir = directions[(index - 1) % directions.length];
+
+        const offset = Math.min(index, 9);
+        const yOffset = offset * 10;
+        const scale = 1 - offset * 0.03;
+        const baseOpacity = Math.max(0.3, 0.7 - offset * 0.08);
+
+        return {
+            x: [0, dir.midX, dir.finalX],
+            y: [yOffset, dir.midY + yOffset, dir.finalY + yOffset],
+            scale: [scale, scale * 0.95, scale * 0.9],
+            opacity: [baseOpacity, baseOpacity * 0.8, 0],
+            rotateZ: [0, dir.rotateZ, dir.rotateZ * 1.5],
+            transition: {
+                duration: 1.0,
+                ease: "easeInOut" as const,
+                delay: 0.15 + (index * 0.1),
+                times: [0, 0.5, 1]
+            }
+        };
+    };
 
     return (
         <section
@@ -176,6 +222,7 @@ export default function HeroSection() {
                             const offset = Math.min(index, 9);
                             const yOffset = offset * 10;
                             const scale = 1 - offset * 0.03;
+                            const baseOpacity = isTop ? 1 : Math.max(0.3, 0.7 - offset * 0.08);
 
                             return (
                                 <motion.div
@@ -203,21 +250,11 @@ export default function HeroSection() {
                                     animate={{
                                         y: yOffset,
                                         scale,
-                                        opacity: 1,
+                                        opacity: baseOpacity,
                                         x: 0,
                                         rotateZ: 0,
                                     }}
-                                    exit={{
-                                        x: exitDirection * 600,
-                                        y: 40,
-                                        scale: 1.05,
-                                        opacity: 0,
-                                        rotateZ: exitDirection * 15,
-                                        transition: {
-                                            duration: 0.6,
-                                            ease: [0.32, 0.72, 0, 1]
-                                        },
-                                    }}
+                                    exit={getExitAnimation(index)}
                                     transition={{
                                         duration: 0.6,
                                         ease: [0.32, 0.72, 0, 1]
@@ -256,7 +293,7 @@ export default function HeroSection() {
                                                 scale: isTop ? 1.08 : 1.03,
                                                 transformOrigin: "center",
                                             }}
-                                            initial={{ opacity: 0.7 }}
+                                            initial={{ opacity: isTop ? 0.7 : 1 }}
                                             animate={{ opacity: 1 }}
                                             transition={{ duration: 0.5, ease: "easeInOut" }}
                                         />

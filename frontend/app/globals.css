@@ -33,3 +33,6 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(246, 182, 182, 0.7);
 }
+nextjs-portal {
+  display: none !important;
+}

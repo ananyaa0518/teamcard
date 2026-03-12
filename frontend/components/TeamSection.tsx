@@ -1,40 +1,40 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export type TeamMember = {
+    id: string;
     name: string;
     role: string;
-    linkedin: string;
-    github: string;
-    email: string;
-    quote: string;
-    image: string;
-};
-
-export type CompanyData = {
-    name?: string;
-    tagline?: string;
-    team: TeamMember[];
+    bio?: string;
+    photo_url: string;
+    linkedin_url?: string;
+    email?: string;
+    location?: string;
 };
 
 export default function TeamSection() {
-    const [companyData, setCompanyData] = useState<CompanyData | null>(null);
+    const [members, setMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
         const fetchTeam = async () => {
             try {
-                const response = await fetch("http://localhost:8000/api/team");
+                const baseUrl =
+                    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+                const response = await fetch(`${baseUrl}/team`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch team data");
                 }
-                const data = await response.json();
-                setCompanyData(data.company);
-            } catch (error) {
-                console.error("Error fetching team data:", error);
+                const data: TeamMember[] = await response.json();
+                setMembers(data);
+            } catch (err) {
+                console.error("Error fetching team data:", err);
+                setError("Unable to load team right now. Please try again in a moment.");
             } finally {
                 setIsLoading(false);
             }
@@ -45,14 +45,14 @@ export default function TeamSection() {
 
     // Auto-cycle the top 2 featured cards every 5 seconds
     useEffect(() => {
-        if (!companyData?.team || companyData.team.length <= 2) return;
+        if (!members.length || members.length <= 2) return;
 
         const interval = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 2) % companyData.team.length);
+            setCurrentIndex((prev) => (prev + 2) % members.length);
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [companyData]);
+    }, [members]);
 
     if (isLoading) {
         return (
@@ -66,19 +66,24 @@ export default function TeamSection() {
         );
     }
 
-    if (!companyData?.team) return null;
+    if (!members.length && !isLoading) return null;
 
     // Get the current 2 featured members
     const featuredMembers = [
-        companyData.team[currentIndex % companyData.team.length],
-        companyData.team[(currentIndex + 1) % companyData.team.length]
+        members[currentIndex % members.length],
+        members[(currentIndex + 1) % members.length]
     ];
 
     // For the marquee, we can just use the whole team array and duplicate it to ensure a smooth infinite scroll
-    const marqueeMembers = [...companyData.team, ...companyData.team];
+    const marqueeMembers = [...members, ...members];
 
     return (
         <section className="min-h-screen bg-[#000000] text-white pt-12 pb-6 relative overflow-hidden flex flex-col items-center justify-center">
+            {error && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-red-600/80 text-xs md:text-sm">
+                    {error}
+                </div>
+            )}
             {/* Ambient Background Glow matching the dark theme */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full -z-10 bg-[radial-gradient(ellipse_at_top,rgba(212,168,74,0.08),transparent_70%)] opacity-80" />
 
@@ -99,7 +104,7 @@ export default function TeamSection() {
                                 {/* Background Image */}
                                 <div className="absolute inset-0">
                                     <img
-                                        src={member.image}
+                                        src={member.photo_url}
                                         alt={member.name}
                                         className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700"
                                     />
@@ -117,14 +122,29 @@ export default function TeamSection() {
                                     <div className="relative max-w-lg mb-2">
                                         <span className="absolute -top-4 -left-3 text-4xl text-[#D4A84A]/30 font-serif">"</span>
                                         <p className="text-white/90 text-[14px] md:text-[16px] italic leading-relaxed pl-4 border-l-2 border-[#D4A84A]/50 relative z-10" style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}>
-                                            {member.quote}
+                                            {member.bio || "Part of the team shaping the future of fashion technology."}
                                         </p>
                                     </div>
 
                                     <div className="pt-3 border-t border-white/10 flex items-center gap-6">
-                                        <a href={member.linkedin} target="_blank" rel="noreferrer" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">LinkedIn</a>
-                                        <a href={member.github} target="_blank" rel="noreferrer" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">GitHub</a>
-                                        <a href={`mailto:${member.email}`} className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide ml-auto">Contact</a>
+                                        {member.linkedin_url && (
+                                            <a
+                                                href={member.linkedin_url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide"
+                                            >
+                                                LinkedIn
+                                            </a>
+                                        )}
+                                        {member.email && (
+                                            <a
+                                                href={`mailto:${member.email}`}
+                                                className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide ml-auto"
+                                            >
+                                                Contact
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>
@@ -151,8 +171,8 @@ export default function TeamSection() {
                                 key={`marquee-${index}`}
                                 className="flex-shrink-0 w-[140px] h-[170px] rounded-2xl bg-[#0B0B0B] border border-white/5 overflow-hidden relative group/card cursor-pointer"
                             >
-                                <img
-                                    src={member.image}
+                                    <img
+                                        src={member.photo_url}
                                     alt={member.name}
                                     className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-500"
                                 />

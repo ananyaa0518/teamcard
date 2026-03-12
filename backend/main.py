@@ -1,115 +1,93 @@
-from fastapi import FastAPI
+import os
+from typing import Any, Dict, List
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Any
+
+try:
+    from backend import database
+    from backend.models import TeamMember, TeamMemberCreate, TeamMemberUpdate
+except ModuleNotFoundError:
+    import database
+    from models import TeamMember, TeamMemberCreate, TeamMemberUpdate
 
 app = FastAPI(title="TeamCard Backend API")
+allowed_origins = ["http://localhost:3000"]
+frontend_origin = os.getenv("FRONTEND_ORIGIN")
+if frontend_origin:
+    allowed_origins.append(frontend_origin)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-team_data = {
-  "company": {
-    "team": [
-      {
-        "name": "Aarav Sharma",
-        "role": "Founder & CEO",
-        "linkedin": "https://linkedin.com/in/aaravsharma",
-        "github": "https://github.com/aaravsharma",
-        "email": "aarav@innovatex.com",
-        "quote": "Great products start with simple ideas.",
-        "image": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=900&q=80"
-      },
-      {
-        "name": "Riya Mehta",
-        "role": "Co-Founder & CTO",
-        "linkedin": "https://linkedin.com/in/riyamehta",
-        "github": "https://github.com/riyamehta",
-        "email": "riya@innovatex.com",
-        "quote": "Technology should make life easier.",
-        "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80"
-      },
-      {
-        "name": "Kabir Singh",
-        "role": "Co-Founder & COO",
-        "linkedin": "https://linkedin.com/in/kabirsingh",
-        "github": "https://github.com/kabirsingh",
-        "email": "kabir@innovatex.com",
-        "quote": "Execution is the real strategy.",
-        "image": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80"
-      },
-      {
-        "name": "Ananya Gupta",
-        "role": "Founding Engineer",
-        "linkedin": "https://linkedin.com/in/ananyagupta",
-        "github": "https://github.com/ananyagupta",
-        "email": "ananya@innovatex.com",
-        "quote": "Code is poetry written for machines.",
-        "image": "https://images.unsplash.com/photo-1528701800489-20be3c30c1d5?w=900&q=80"
-      },
-      {
-        "name": "Rohan Verma",
-        "role": "Frontend Engineer",
-        "linkedin": "https://linkedin.com/in/rohanverma",
-        "github": "https://github.com/rohanverma",
-        "email": "rohan@innovatex.com",
-        "quote": "Design is intelligence made visible.",
-        "image": "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=900&q=80"
-      },
-      {
-        "name": "Ishita Kapoor",
-        "role": "Backend Engineer",
-        "linkedin": "https://linkedin.com/in/ishitakapoor",
-        "github": "https://github.com/ishitakapoor",
-        "email": "ishita@innovatex.com",
-        "quote": "Clean architecture builds scalable systems.",
-        "image": "https://images.unsplash.com/photo-1539109136881-3be0616acf4c?w=900&q=80"
-      },
-      {
-        "name": "Dev Patel",
-        "role": "Full Stack Developer",
-        "linkedin": "https://linkedin.com/in/devpatel",
-        "github": "https://github.com/devpatel",
-        "email": "dev@innovatex.com",
-        "quote": "Every bug is a lesson.",
-        "image": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=900&q=80"
-      },
-      {
-        "name": "Neha Iyer",
-        "role": "UI/UX Designer",
-        "linkedin": "https://linkedin.com/in/nehaiyer",
-        "github": "https://github.com/nehaiyer",
-        "email": "neha@innovatex.com",
-        "quote": "Good design feels invisible.",
-        "image": "https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?w=900&q=80"
-      },
-      {
-        "name": "Aditya Nair",
-        "role": "DevOps Engineer",
-        "linkedin": "https://linkedin.com/in/adityanair",
-        "github": "https://github.com/adityanair",
-        "email": "aditya@innovatex.com",
-        "quote": "Automation is the backbone of reliability.",
-        "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&q=80"
-      },
-      {
-        "name": "Sneha Chatterjee",
-        "role": "Product Manager",
-        "linkedin": "https://linkedin.com/in/snehachatterjee",
-        "github": "https://github.com/snehachatterjee",
-        "email": "sneha@innovatex.com",
-        "quote": "Products succeed when users love them.",
-        "image": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&q=80"
-      }
-    ]
-  }
-}
+
+@app.get("/team", response_model=List[TeamMember])
+async def list_team_members() -> List[TeamMember]:
+    """
+    Returns all team members as a flat list.
+    """
+
+    return database.get_all_members()
+
+
+@app.post("/team", response_model=TeamMember, status_code=201)
+async def create_team_member(member: TeamMemberCreate) -> TeamMember:
+    """
+    Creates a new team member.
+    """
+
+    return database.add_member(member)
+
+
+@app.put("/team/{member_id}", response_model=TeamMember)
+async def update_team_member(member_id: str, member: TeamMemberUpdate) -> TeamMember:
+    """
+    Updates an existing team member by ID.
+    """
+
+    updated = database.update_member(member_id, member)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Team member not found")
+    return updated
+
+
+@app.delete("/team/{member_id}")
+async def delete_team_member(member_id: str) -> Dict[str, str]:
+    """
+    Deletes a team member by ID.
+    """
+
+    success = database.delete_member(member_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Team member not found")
+    return {"message": "Team member deleted successfully"}
+
 
 @app.get("/api/team", response_model=Dict[str, Any])
-async def get_team_data():
-    """Returns the static company and team JSON payload."""
-    return team_data
+async def get_team_data_legacy() -> Dict[str, Any]:
+    """
+    Legacy endpoint that returns a nested payload structure.
+    Kept for backward compatibility with older clients.
+    """
+
+    members = database.get_all_members()
+    return {
+        "company": {
+            "team": [member.model_dump() for member in members]
+        }
+    }
+
+
+@app.get("/api/team/members", response_model=List[TeamMember])
+async def get_team_members_legacy() -> List[TeamMember]:
+    """
+    Legacy endpoint returning the list of team members in a flat array,
+    under the older `/api/team/members` path.
+    """
+
+    return database.get_all_members()

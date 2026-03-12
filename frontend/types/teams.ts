@@ -1,24 +1,22 @@
 export interface TeamMember {
-  id: string
-  name: string
-  role: string
-  bio?: string
-  image?: string
-  quote?: string
-  linkedin?: string
-  github?: string
-  email?: string
+  id: string;
+  name: string;
+  role: string;
+  bio?: string;
+  photo_url: string;
+  linkedin_url?: string;
+  email?: string;
+  location?: string;
 }
 
 export interface TeamMemberCreate {
-  name: string
-  role: string
-  bio?: string
-  image?: string
-  quote?: string
-  linkedin?: string
-  github?: string
-  email?: string
+  name: string;
+  role: string;
+  bio?: string;
+  photo_url: string;
+  linkedin_url?: string;
+  email?: string;
+  location?: string;
 }
 
-export interface TeamMemberUpdate extends TeamMemberCreate {}
+export type TeamMemberUpdate = TeamMemberCreate;

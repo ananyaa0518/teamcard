@@ -1,6 +1,10 @@
 import uuid
 from typing import List, Optional
-from backend.models import TeamMember, TeamMemberCreate, TeamMemberUpdate
+
+try:
+  from backend.models import TeamMember, TeamMemberCreate, TeamMemberUpdate
+except ModuleNotFoundError:
+  from models import TeamMember, TeamMemberCreate, TeamMemberUpdate
 
 # In-memory database
 _team_db = {}
@@ -10,92 +14,102 @@ def init_db():
       {
         "name": "Aarav Sharma",
         "role": "Founder & CEO",
-        "linkedin": "https://linkedin.com/in/aaravsharma",
+        "linkedin_url": "https://linkedin.com/in/aaravsharma",
         "github": "https://github.com/aaravsharma",
         "email": "aarav@innovatex.com",
+        "bio": "Great products start with simple ideas.",
         "quote": "Great products start with simple ideas.",
-        "image": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=900&q=80"
       },
       {
         "name": "Riya Mehta",
         "role": "Co-Founder & CTO",
-        "linkedin": "https://linkedin.com/in/riyamehta",
+        "linkedin_url": "https://linkedin.com/in/riyamehta",
         "github": "https://github.com/riyamehta",
         "email": "riya@innovatex.com",
+        "bio": "Technology should make life easier.",
         "quote": "Technology should make life easier.",
-        "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80"
       },
       {
         "name": "Kabir Singh",
         "role": "Co-Founder & COO",
-        "linkedin": "https://linkedin.com/in/kabirsingh",
+        "linkedin_url": "https://linkedin.com/in/kabirsingh",
         "github": "https://github.com/kabirsingh",
         "email": "kabir@innovatex.com",
+        "bio": "Execution is the real strategy.",
         "quote": "Execution is the real strategy.",
-        "image": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80"
       },
       {
         "name": "Ananya Gupta",
         "role": "Founding Engineer",
-        "linkedin": "https://linkedin.com/in/ananyagupta",
+        "linkedin_url": "https://linkedin.com/in/ananyagupta",
         "github": "https://github.com/ananyagupta",
         "email": "ananya@innovatex.com",
+        "bio": "Code is poetry written for machines.",
         "quote": "Code is poetry written for machines.",
-        "image": "https://images.unsplash.com/photo-1528701800489-20be3c30c1d5?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1528701800489-20be3c30c1d5?w=900&q=80"
       },
       {
         "name": "Rohan Verma",
         "role": "Frontend Engineer",
-        "linkedin": "https://linkedin.com/in/rohanverma",
+        "linkedin_url": "https://linkedin.com/in/rohanverma",
         "github": "https://github.com/rohanverma",
         "email": "rohan@innovatex.com",
+        "bio": "Design is intelligence made visible.",
         "quote": "Design is intelligence made visible.",
-        "image": "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=900&q=80"
       },
       {
         "name": "Ishita Kapoor",
         "role": "Backend Engineer",
-        "linkedin": "https://linkedin.com/in/ishitakapoor",
+        "linkedin_url": "https://linkedin.com/in/ishitakapoor",
         "github": "https://github.com/ishitakapoor",
         "email": "ishita@innovatex.com",
+        "bio": "Clean architecture builds scalable systems.",
         "quote": "Clean architecture builds scalable systems.",
-        "image": "https://images.unsplash.com/photo-1539109136881-3be0616acf4c?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1539109136881-3be0616acf4c?w=900&q=80"
       },
       {
         "name": "Dev Patel",
         "role": "Full Stack Developer",
-        "linkedin": "https://linkedin.com/in/devpatel",
+        "linkedin_url": "https://linkedin.com/in/devpatel",
         "github": "https://github.com/devpatel",
         "email": "dev@innovatex.com",
+        "bio": "Every bug is a lesson.",
         "quote": "Every bug is a lesson.",
-        "image": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=900&q=80"
       },
       {
         "name": "Neha Iyer",
         "role": "UI/UX Designer",
-        "linkedin": "https://linkedin.com/in/nehaiyer",
+        "linkedin_url": "https://linkedin.com/in/nehaiyer",
         "github": "https://github.com/nehaiyer",
         "email": "neha@innovatex.com",
+        "bio": "Good design feels invisible.",
         "quote": "Good design feels invisible.",
-        "image": "https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?w=900&q=80"
       },
       {
         "name": "Aditya Nair",
         "role": "DevOps Engineer",
-        "linkedin": "https://linkedin.com/in/adityanair",
+        "linkedin_url": "https://linkedin.com/in/adityanair",
         "github": "https://github.com/adityanair",
         "email": "aditya@innovatex.com",
+        "bio": "Automation is the backbone of reliability.",
         "quote": "Automation is the backbone of reliability.",
-        "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&q=80"
       },
       {
         "name": "Sneha Chatterjee",
         "role": "Product Manager",
-        "linkedin": "https://linkedin.com/in/snehachatterjee",
+        "linkedin_url": "https://linkedin.com/in/snehachatterjee",
         "github": "https://github.com/snehachatterjee",
         "email": "sneha@innovatex.com",
+        "bio": "Products succeed when users love them.",
         "quote": "Products succeed when users love them.",
-        "image": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&q=80"
       }
     ]
     for m in team_data:

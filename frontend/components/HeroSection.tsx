@@ -28,7 +28,11 @@ type Card = {
     image: string;
 };
 
-export default function HeroSection() {
+interface HeroSectionProps {
+    onTransitionComplete?: () => void;
+}
+
+export default function HeroSection({ onTransitionComplete }: HeroSectionProps) {
     const initialCards: Card[] = useMemo(
         () =>
             CARD_IMAGES.map((image, index) => ({
@@ -68,7 +72,7 @@ export default function HeroSection() {
 
     const shadowSpread = useTransform(isHoveredTop, [0, 1], [18, 40]);
     const shadowBlur = useTransform(isHoveredTop, [0, 1], [40, 90]);
-    const boxShadow = useMotionTemplate`0 ${shadowSpread}px ${shadowBlur}px rgba(120, 60, 120, 0.40)`;
+    const boxShadow = useMotionTemplate`0 ${shadowSpread}px ${shadowBlur}px rgba(212, 168, 74, 0.15)`;
 
     function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
         if (!stackRef.current) return;
@@ -92,12 +96,11 @@ export default function HeroSection() {
     }
 
     function handleExitComplete() {
-        if (isDispersing) {
-            setTimeout(() => {
-                setCards(initialCards);
-                setIsDispersing(false);
-            }, 300);
+        // Find if any cards are left, if array gets completely empty we know we dispersed them all
+        if (cards.length === 0 && onTransitionComplete) {
+            onTransitionComplete();
         }
+        // Remove the setTimeout that resets the cards, so they don't pop back up
     }
 
     const getExitAnimation = (index: number) => {
@@ -154,7 +157,7 @@ export default function HeroSection() {
         <section
             className="relative min-h-screen flex items-center justify-center overflow-hidden px-6"
             style={{
-                background: "linear-gradient(160deg, #f9caca 0%, #f6b6b6 40%, #e7a4a6 100%)",
+                backgroundColor: "#000000",
             }}
         >
             {/* Soft blobs */}
@@ -162,14 +165,14 @@ export default function HeroSection() {
                 <div
                     className="absolute -left-32 -top-40 h-[420px] w-[420px] rounded-full"
                     style={{
-                        background: "radial-gradient(circle, rgba(255,200,210,0.8) 0%, transparent 70%)",
+                        background: "radial-gradient(circle, rgba(242, 201, 76, 0.1) 0%, transparent 70%)",
                         filter: "blur(60px)",
                     }}
                 />
                 <div
                     className="absolute -right-40 bottom-[-120px] h-[460px] w-[460px] rounded-full"
                     style={{
-                        background: "radial-gradient(circle, rgba(230,150,170,0.65) 0%, transparent 70%)",
+                        background: "radial-gradient(circle, rgba(232, 183, 75, 0.08) 0%, transparent 70%)",
                         filter: "blur(80px)",
                     }}
                 />
@@ -177,40 +180,18 @@ export default function HeroSection() {
 
             {/* Grain overlay */}
             <div
-                className="pointer-events-none absolute inset-0 opacity-40 mix-blend-soft-light"
+                className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-screen"
                 style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
                 }}
             />
 
-            {/* Background heading */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <h1
-                    className="select-none text-center"
-                    style={{
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: "clamp(64px, 11vw, 168px)",
-                        fontWeight: 900,
-                        color: "rgba(255,255,255,0.22)",
-                        letterSpacing: "-0.04em",
-                        lineHeight: 0.9,
-                        textShadow: "0 26px 80px rgba(180,100,120,0.32)",
-                        whiteSpace: "nowrap",
-                    }}
-                >
-                    Take a Spin
-                </h1>
-            </div>
-
             {/* Center stack */}
-            <div className="relative z-20 flex flex-col items-center gap-6">
-                <div className="mb-4 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase">
-                    Curated looks, one swipe away
-                </div>
+            <div className="relative z-20 flex flex-col items-center pt-[100px] md:pt-[120px]">
 
                 <motion.div
                     ref={stackRef}
-                    className="relative w-[260px] sm:w-[280px] md:w-[320px] h-[440px]"
+                    className="relative w-[280px] sm:w-[320px] md:w-[380px] h-[280px] sm:h-[320px] md:h-[380px]"
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
                     onMouseEnter={() => isHoveredTop.set(1)}
@@ -220,9 +201,12 @@ export default function HeroSection() {
                         {cards.map((card, index) => {
                             const isTop = index === 0;
                             const offset = Math.min(index, 9);
-                            const yOffset = offset * 10;
+                            // Set yOffset to 0 so cards only peek out via right/left rotation
+                            const yOffset = 0;
                             const scale = 1 - offset * 0.03;
-                            const baseOpacity = isTop ? 1 : Math.max(0.3, 0.7 - offset * 0.08);
+                            // Fade out cards sharply so only the first 3-4 are visibly stacked
+                            const baseOpacity = isTop ? 1 : Math.max(0, 0.9 - offset * 0.25);
+                            const baseRotateZ = isTop ? 0 : (index % 2 === 1 ? -4 : 4);
 
                             return (
                                 <motion.div
@@ -237,22 +221,22 @@ export default function HeroSection() {
                                         pointerEvents: isTop ? "auto" : "none",
                                         rotateX: isTop ? rotateX : 0,
                                         rotateY: isTop ? rotateY : 0,
-                                        boxShadow: isTop ? boxShadow : "0 20px 60px rgba(170,90,120,0.45)",
-                                        borderRadius: 80,
+                                        boxShadow: isTop ? boxShadow : "0 20px 60px rgba(0,0,0,0.8)",
+                                        borderRadius: 24,
                                         transformStyle: "preserve-3d",
                                         willChange: "transform",
                                     }}
                                     initial={
                                         index === 0
                                             ? { opacity: 0, y: 40, scale: 0.9, x: 0, rotateZ: 0 }
-                                            : { opacity: 0, y: yOffset + 30, scale: scale * 0.94, x: 0, rotateZ: 0 }
+                                            : { opacity: 0, y: yOffset + 30, scale: scale * 0.94, x: 0, rotateZ: baseRotateZ }
                                     }
                                     animate={{
                                         y: yOffset,
                                         scale,
                                         opacity: baseOpacity,
                                         x: 0,
-                                        rotateZ: 0,
+                                        rotateZ: baseRotateZ,
                                     }}
                                     exit={getExitAnimation(index)}
                                     transition={{
@@ -276,17 +260,17 @@ export default function HeroSection() {
                                     <div
                                         className="relative h-full w-full overflow-hidden"
                                         style={{
-                                            borderRadius: 80,
-                                            background: "linear-gradient(145deg, rgba(255,255,255,0.35), rgba(255,255,255,0.18))",
-                                            border: "1px solid rgba(255,255,255,0.45)",
-                                            backdropFilter: "blur(24px)",
+                                            borderRadius: 24,
+                                            backgroundColor: "#0B0B0B",
+                                            border: "1px solid rgba(212, 168, 74, 0.3)",
+                                            boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)",
                                         }}
                                     >
                                         {/* Parallax image */}
                                         <motion.img
                                             src={card.image}
                                             alt="Curated fashion look"
-                                            className="absolute inset-0 h-full w-full object-cover object-top"
+                                            className="absolute inset-0 h-full w-full object-cover object-top opacity-80 mix-blend-luminosity"
                                             style={{
                                                 x: isTop ? imageX : 0,
                                                 y: isTop ? imageY : 0,
@@ -298,23 +282,17 @@ export default function HeroSection() {
                                             transition={{ duration: 0.5, ease: "easeInOut" }}
                                         />
 
-                                        {/* Top gradient */}
-                                        <div
-                                            className="pointer-events-none absolute inset-0"
-                                            style={{
-                                                background:
-                                                    "linear-gradient(to bottom, rgba(255,255,255,0.55), transparent 45%, rgba(10,7,15,0.6) 100%)",
-                                            }}
-                                        />
-
-                                        {/* Subtle content at bottom */}
-                                        <div className="pointer-events-none absolute inset-x-0 bottom-6 flex flex-col items-center gap-1 text-[11px] font-medium tracking-[0.22em] text-white/80 uppercase">
-                                            <div className="rounded-full border border-white/30 bg-white/10 px-4 py-1 backdrop-blur-sm">
-                                                Next Look
+                                        {/* Bottom text overlay (Name & Role) */}
+                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6 flex flex-col justify-end">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                                                    Silver George
+                                                </h3>
+                                                <span className="text-lg">🇳🇬</span>
                                             </div>
-                                            <div className="text-[10px] font-normal tracking-[0.32em] text-white/70">
-                                                Tap to shuffle the deck
-                                            </div>
+                                            <p className="text-[11px] md:text-[12px] font-bold tracking-[0.15em] text-white/80 uppercase">
+                                                Product Designer
+                                            </p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -323,12 +301,7 @@ export default function HeroSection() {
                     </AnimatePresence>
                 </motion.div>
 
-                <p
-                    className="max-w-xs text-center text-[13px] leading-relaxed text-white/80"
-                    style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}
-                >
-                    An interactive stack of curated outfits—tap the top card to spin the deck and discover the next look.
-                </p>
+
             </div>
         </section>
     );

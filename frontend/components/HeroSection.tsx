@@ -8,22 +8,9 @@ import {
     useSpring,
     useTransform,
 } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchTeamMembers } from "@/lib/api";
 import type { TeamMember } from "@/types/teams";
-
-const CARD_IMAGES = [
-    "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=900&q=80",
-    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80",
-    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80",
-    "https://images.unsplash.com/photo-1528701800489-20be3c30c1d5?w=900&q=80",
-    "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=900&q=80",
-    "https://images.unsplash.com/photo-1539109136881-3be0616acf4c?w=900&q=80",
-    "https://images.unsplash.com/photo-1539109136881-3be0616acf4c?w=900&q=80",
-    "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=900&q=80",
-    "https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?w=900&q=80",
-    "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&q=80",
-];
 
 type Card = {
     id: string;
@@ -37,18 +24,7 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ onTransitionComplete }: HeroSectionProps) {
-    const fallbackCards: Card[] = useMemo(
-        () =>
-            CARD_IMAGES.map((image, index) => ({
-                id: `card-${index}`,
-                image,
-                name: `Team Member ${index + 1}`,
-                role: "Team",
-            })),
-        []
-    );
-
-    const [cards, setCards] = useState<Card[]>(fallbackCards);
+    const [cards, setCards] = useState<Card[]>([]);
     const [isDispersing, setIsDispersing] = useState(false);
     const hasTriggeredTransitionRef = useRef(false);
     const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,12 +35,14 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
                 const members = await fetchTeamMembers();
                 if (!members.length) return;
 
-                const mappedCards: Card[] = members.map((member: TeamMember) => ({
-                    id: member.id,
-                    image: member.photo_url,
-                    name: member.name,
-                    role: member.role,
-                }));
+                const mappedCards: Card[] = members
+                    .filter((member: TeamMember) => Boolean(member.photo_url))
+                    .map((member: TeamMember) => ({
+                        id: member.id,
+                        image: member.photo_url,
+                        name: member.name,
+                        role: member.role,
+                    }));
 
                 setCards(mappedCards);
             } catch (err) {

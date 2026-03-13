@@ -16,6 +16,17 @@ export type TeamMember = {
     location?: string;
 };
 
+function getImageSrc(photoUrl: string): string {
+    if (!photoUrl) return "";
+
+    // Unsplash links are more reliable with explicit transform params.
+    if (photoUrl.includes("images.unsplash.com") && !photoUrl.includes("?")) {
+        return `${photoUrl}?auto=format&fit=crop&w=1400&q=80`;
+    }
+
+    return photoUrl;
+}
+
 export default function TeamSection() {
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -171,9 +182,10 @@ export default function TeamSection() {
                                     {/* Background Image */}
                                     <div className="absolute inset-0">
                                         <Image
-                                            src={member.photo_url}
+                                            src={getImageSrc(member.photo_url)}
                                             alt={member.name}
                                             fill
+                                            unoptimized
                                             className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700"
                                         />
                                         {/* Gradient overlay for text readability */}
@@ -240,9 +252,10 @@ export default function TeamSection() {
                                 className="shrink-0 w-35 h-[42.5] rounded-2xl bg-[#0B0B0B] border border-white/5 overflow-hidden relative group/card cursor-pointer"
                             >
                                 <Image
-                                    src={member.photo_url}
+                                    src={getImageSrc(member.photo_url)}
                                     alt={member.name}
                                     fill
+                                    unoptimized
                                     className="object-cover opacity-70 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-500"
                                 />
                                 <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent" />

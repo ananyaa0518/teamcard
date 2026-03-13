@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 export type TeamMember = {
@@ -20,19 +21,39 @@ export default function TeamSection() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [ready, setReady] = useState(false);
 
     useEffect(() => {
+        const controller = new AbortController();
+
         const fetchTeam = async () => {
             try {
+                setError(null);
+                setIsLoading(true);
+
                 const baseUrl =
                     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-                const response = await fetch(`${baseUrl}/team`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch team data");
-                }
+                const response = await fetch(`${baseUrl}/team`, {
+                    signal: controller.signal,
+                    cache: "no-store",
+                });
+
+                if (!response.ok) throw new Error("Failed to fetch team data");
+
                 const data: TeamMember[] = await response.json();
-                setMembers(data);
+
+                // Fetched only + de-duplicate by id
+                const deduped = Array.isArray(data)
+                    ? data.filter(
+                          (m, idx, arr) => m?.id && arr.findIndex((x) => x.id === m.id) === idx
+                      )
+                    : [];
+
+                setMembers(deduped);
+                setCurrentIndex(0);
+                setReady(true);
             } catch (err) {
+                if ((err as Error).name === "AbortError") return;
                 console.error("Error fetching team data:", err);
                 setError("Unable to load team right now. Please try again in a moment.");
             } finally {
@@ -41,18 +62,18 @@ export default function TeamSection() {
         };
 
         fetchTeam();
+        return () => controller.abort();
     }, []);
 
-    // Auto-cycle the top 2 featured cards every 5 seconds
     useEffect(() => {
-        if (!members.length || members.length <= 2) return;
+        if (!ready || members.length <= 2) return;
 
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 2) % members.length);
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [members]);
+    }, [members, ready]);
 
     if (isLoading) {
         return (
@@ -68,14 +89,13 @@ export default function TeamSection() {
 
     if (!members.length && !isLoading) return null;
 
-    // Get the current 2 featured members
-    const featuredMembers = [
-        members[currentIndex % members.length],
-        members[(currentIndex + 1) % members.length]
-    ];
+    const featuredMembers =
+        members.length >= 2
+            ? [members[currentIndex % members.length], members[(currentIndex + 1) % members.length]]
+            : members;
 
-    // For the marquee, we can just use the whole team array and duplicate it to ensure a smooth infinite scroll
-    const marqueeMembers = [...members, ...members];
+    // Use fetched members only (no static/fallback/duplication list)
+    const marqueeMembers = members;
 
     return (
         <section className="min-h-screen bg-[#000000] text-white pt-12 pb-6 relative overflow-hidden flex flex-col items-center justify-center">
@@ -84,6 +104,7 @@ export default function TeamSection() {
                     {error}
                 </div>
             )}
+
             {/* Ambient cinematic shine */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
                 <div
@@ -136,64 +157,66 @@ export default function TeamSection() {
 
                 {/* Top Section: 2 Large Auto-Cycling Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4">
-                    <AnimatePresence mode="popLayout">
-                        {featuredMembers.map((member, i) => (
-                            <motion.div
-                                key={`${member.name}-${currentIndex}-${i}`} // Force re-render/animation on index change
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                                className="group relative flex flex-col justify-end rounded-3xl bg-[#0B0B0B] border border-[rgba(212,168,74,0.15)] shadow-[0_20px_40px_rgba(0,0,0,0.5)] overflow-hidden h-[240px] md:h-[280px]"
-                            >
-                                {/* Background Image */}
-                                <div className="absolute inset-0">
-                                    <img
-                                        src={member.photo_url}
-                                        alt={member.name}
-                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700"
-                                    />
-                                    {/* Gradient overlay for text readability */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-                                </div>
-
-                                <div className="relative z-10 p-4 md:p-5 flex flex-col h-full justify-end">
-                                    <div>
-                                        <h3 className="text-3xl lg:text-4xl font-bold text-white mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-                                            {member.name}
-                                        </h3>
-                                        <p className="text-[10px] font-bold tracking-[0.15em] text-[#D4A84A] uppercase mb-2">{member.role}</p>
-                                    </div>
-                                    <div className="relative max-w-lg mb-2">
-                                        <span className="absolute -top-4 -left-3 text-4xl text-[#D4A84A]/30 font-serif">"</span>
-                                        <p className="text-white/90 text-[14px] md:text-[16px] italic leading-relaxed pl-4 border-l-2 border-[#D4A84A]/50 relative z-10" style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}>
-                                            {member.bio || "Part of the team shaping the future of fashion technology."}
-                                        </p>
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        {ready &&
+                            featuredMembers.map((member, i) => (
+                                <motion.div
+                                    key={`${member.id}-${currentIndex}-${i}`}
+                                    initial={false}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                                    className="group relative flex flex-col justify-end rounded-3xl bg-[#0B0B0B] border border-[rgba(212,168,74,0.15)] shadow-[0_20px_40px_rgba(0,0,0,0.5)] overflow-hidden h-60 md:h-70"
+                                >
+                                    {/* Background Image */}
+                                    <div className="absolute inset-0">
+                                        <Image
+                                            src={member.photo_url}
+                                            alt={member.name}
+                                            fill
+                                            className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700"
+                                        />
+                                        {/* Gradient overlay for text readability */}
+                                        <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
                                     </div>
 
-                                    <div className="pt-3 border-t border-white/10 flex items-center gap-6">
-                                        {member.linkedin_url && (
-                                            <a
-                                                href={member.linkedin_url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide"
-                                            >
-                                                LinkedIn
-                                            </a>
-                                        )}
-                                        {member.email && (
-                                            <a
-                                                href={`mailto:${member.email}`}
-                                                className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide ml-auto"
-                                            >
-                                                Contact
-                                            </a>
-                                        )}
+                                    <div className="relative z-10 p-4 md:p-5 flex flex-col h-full justify-end">
+                                        <div>
+                                            <h3 className="text-3xl lg:text-4xl font-bold text-white mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                                                {member.name}
+                                            </h3>
+                                            <p className="text-[10px] font-bold tracking-[0.15em] text-[#D4A84A] uppercase mb-2">{member.role}</p>
+                                        </div>
+                                        <div className="relative max-w-lg mb-2">
+                                            <span className="absolute -top-4 -left-3 text-4xl text-[#D4A84A]/30 font-serif">"</span>
+                                            <p className="text-white/90 text-[14px] md:text-[16px] italic leading-relaxed pl-4 border-l-2 border-[#D4A84A]/50 relative z-10" style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}>
+                                                {member.bio || "Part of the team shaping the future of fashion technology."}
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-3 border-t border-white/10 flex items-center gap-6">
+                                            {member.linkedin_url && (
+                                                <a
+                                                    href={member.linkedin_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide"
+                                                >
+                                                    LinkedIn
+                                                </a>
+                                            )}
+                                            {member.email && (
+                                                <a
+                                                    href={`mailto:${member.email}`}
+                                                    className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide ml-auto"
+                                                >
+                                                    Contact
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </motion.div>
-                        ))}
+                                </motion.div>
+                            ))}
                     </AnimatePresence>
                 </div>
             </div>
@@ -201,31 +224,31 @@ export default function TeamSection() {
             {/* Bottom Section: Infinite Marquee of Small Cards */}
             <div className="w-full relative py-0 mt-2">
                 {/* Fade edges */}
-                <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+                <div className="absolute left-0 top-0 bottom-0 w-32 bg-linear-to-r from-black to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-32 bg-linear-to-l from-black to-transparent z-10 pointer-events-none" />
 
                 <div className="flex overflow-hidden group">
                     <motion.div
                         className="flex gap-6 px-3"
                         style={{ width: "max-content" }}
-                        animate={{ x: ["0%", "-50%"] }}
-                        transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
+                        animate={ready ? { x: ["0%", "-50%"] } : { x: "0%" }}
+                        transition={ready ? { repeat: Infinity, duration: 40, ease: "linear" } : undefined}
                     >
-                        {marqueeMembers.map((member, index) => (
+                        {[...marqueeMembers, ...marqueeMembers].map((member, idx) => (
                             <div
-                                key={`marquee-${index}`}
-                                className="flex-shrink-0 w-[140px] h-[170px] rounded-2xl bg-[#0B0B0B] border border-white/5 overflow-hidden relative group/card cursor-pointer"
+                                key={`marquee-${member.id}-${idx}`}
+                                className="shrink-0 w-35 h-[42.5] rounded-2xl bg-[#0B0B0B] border border-white/5 overflow-hidden relative group/card cursor-pointer"
                             >
-                                    <img
-                                        src={member.photo_url}
+                                <Image
+                                    src={member.photo_url}
                                     alt={member.name}
-                                    className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-500"
+                                    fill
+                                    className="object-cover opacity-70 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-500"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-
+                                <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent" />
                                 <div className="absolute bottom-0 left-0 right-0 p-3 transform translate-y-2 group-hover/card:translate-y-0 transition-transform duration-300">
                                     <h4 className="text-base font-bold text-white mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{member.name}</h4>
-                                    <p className="text-[9px] font-bold tracking-[0.1em] text-[#D4A84A] uppercase">{member.role}</p>
+                                    <p className="text-[9px] font-bold tracking-widest text-[#D4A84A] uppercase">{member.role}</p>
                                 </div>
                             </div>
                         ))}

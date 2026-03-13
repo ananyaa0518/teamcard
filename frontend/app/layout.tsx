@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Fashion.ai — Style Redefined",
-  description: "Discover your perfect wardrobe, curated by intelligence.",
+  title: "Team Page",
+  description: "Full Stack Team Management System",
 };
 
 export default function RootLayout({

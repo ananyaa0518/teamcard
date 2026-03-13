@@ -8,7 +8,9 @@ import {
     useSpring,
     useTransform,
 } from "framer-motion";
-import { useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { fetchTeamMembers } from "@/lib/api";
+import type { TeamMember } from "@/types/teams";
 
 const CARD_IMAGES = [
     "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=900&q=80",
@@ -26,6 +28,8 @@ const CARD_IMAGES = [
 type Card = {
     id: string;
     image: string;
+    name: string;
+    role: string;
 };
 
 interface HeroSectionProps {
@@ -33,17 +37,43 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ onTransitionComplete }: HeroSectionProps) {
-    const initialCards: Card[] = useMemo(
+    const fallbackCards: Card[] = useMemo(
         () =>
             CARD_IMAGES.map((image, index) => ({
                 id: `card-${index}`,
                 image,
+                name: `Team Member ${index + 1}`,
+                role: "Team",
             })),
         []
     );
 
-    const [cards, setCards] = useState<Card[]>(initialCards);
+    const [cards, setCards] = useState<Card[]>(fallbackCards);
     const [isDispersing, setIsDispersing] = useState(false);
+    const hasTriggeredTransitionRef = useRef(false);
+    const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        const loadHeroCards = async () => {
+            try {
+                const members = await fetchTeamMembers();
+                if (!members.length) return;
+
+                const mappedCards: Card[] = members.map((member: TeamMember) => ({
+                    id: member.id,
+                    image: member.photo_url,
+                    name: member.name,
+                    role: member.role,
+                }));
+
+                setCards(mappedCards);
+            } catch (err) {
+                console.error("Failed to fetch hero team cards:", err);
+            }
+        };
+
+        loadHeroCards();
+    }, []);
 
     const stackRef = useRef<HTMLDivElement | null>(null);
     const mouseX = useMotionValue(0);
@@ -74,6 +104,20 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
     const shadowBlur = useTransform(isHoveredTop, [0, 1], [40, 90]);
     const boxShadow = useMotionTemplate`0 ${shadowSpread}px ${shadowBlur}px rgba(212, 168, 74, 0.15)`;
 
+    useEffect(() => {
+        return () => {
+            if (transitionTimerRef.current) {
+                clearTimeout(transitionTimerRef.current);
+            }
+        };
+    }, []);
+
+    function triggerTransitionOnce() {
+        if (hasTriggeredTransitionRef.current) return;
+        hasTriggeredTransitionRef.current = true;
+        onTransitionComplete?.();
+    }
+
     function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
         if (!stackRef.current) return;
         const rect = stackRef.current.getBoundingClientRect();
@@ -93,12 +137,17 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
         if (isDispersing || cards.length === 0) return;
         setIsDispersing(true);
         setCards([]); // Trigger exit for all
+
+        // Start next section at 2s without changing disperse animation timings.
+        transitionTimerRef.current = setTimeout(() => {
+            triggerTransitionOnce();
+        }, 2000);
     }
 
     function handleExitComplete() {
-        // Find if any cards are left, if array gets completely empty we know we dispersed them all
+        // Fallback: if exit completes before 2s timer or timer didn't run, continue.
         if (cards.length === 0 && onTransitionComplete) {
-            onTransitionComplete();
+            triggerTransitionOnce();
         }
         // Remove the setTimeout that resets the cards, so they don't pop back up
     }
@@ -160,23 +209,54 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
                 backgroundColor: "#000000",
             }}
         >
-            {/* Soft blobs */}
-            <div className="pointer-events-none absolute inset-0">
+            {/* Cinematic edge shine */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div
-                    className="absolute -left-32 -top-40 h-[420px] w-[420px] rounded-full"
+                    className="absolute"
                     style={{
-                        background: "radial-gradient(circle, rgba(242, 201, 76, 0.1) 0%, transparent 70%)",
+                        left: "-10%",
+                        top: "12%",
+                        width: "34vw",
+                        maxWidth: "460px",
+                        height: "76vh",
+                        borderRadius: "999px",
+                        background:
+                            "radial-gradient(ellipse at center, rgba(240, 175, 45, 0.32) 0%, rgba(116, 158, 72, 0.2) 42%, rgba(0, 0, 0, 0) 75%)",
                         filter: "blur(60px)",
+                        opacity: 0.78,
                     }}
                 />
                 <div
-                    className="absolute -right-40 bottom-[-120px] h-[460px] w-[460px] rounded-full"
+                    className="absolute"
                     style={{
-                        background: "radial-gradient(circle, rgba(232, 183, 75, 0.08) 0%, transparent 70%)",
-                        filter: "blur(80px)",
+                        right: "-8%",
+                        top: "10%",
+                        width: "32vw",
+                        maxWidth: "440px",
+                        height: "78vh",
+                        borderRadius: "999px",
+                        background:
+                            "radial-gradient(ellipse at center, rgba(243, 176, 43, 0.3) 0%, rgba(106, 154, 72, 0.18) 44%, rgba(0, 0, 0, 0) 78%)",
+                        filter: "blur(62px)",
+                        opacity: 0.72,
+                    }}
+                />
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background:
+                            "radial-gradient(ellipse at center, rgba(255, 214, 120, 0.08) 0%, rgba(0, 0, 0, 0) 58%), radial-gradient(ellipse at bottom, rgba(227, 170, 56, 0.1) 0%, rgba(0, 0, 0, 0) 62%)",
                     }}
                 />
             </div>
+
+            <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                    background:
+                        "radial-gradient(circle at center, rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.32) 100%)",
+                }}
+            />
 
             {/* Grain overlay */}
             <div
@@ -269,7 +349,7 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
                                         {/* Parallax image */}
                                         <motion.img
                                             src={card.image}
-                                            alt="Curated fashion look"
+                                            alt={card.name}
                                             className="absolute inset-0 h-full w-full object-cover object-top opacity-80 mix-blend-luminosity"
                                             style={{
                                                 x: isTop ? imageX : 0,
@@ -284,14 +364,13 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
 
                                         {/* Bottom text overlay (Name & Role) */}
                                         <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6 flex flex-col justify-end">
-                                            <div className="flex items-center gap-2 mb-1">
+                                            <div className="mb-1">
                                                 <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight">
-                                                    Silver George
+                                                    {card.name}
                                                 </h3>
-                                                <span className="text-lg">🇳🇬</span>
                                             </div>
                                             <p className="text-[11px] md:text-[12px] font-bold tracking-[0.15em] text-white/80 uppercase">
-                                                Product Designer
+                                                {card.role}
                                             </p>
                                         </div>
                                     </div>

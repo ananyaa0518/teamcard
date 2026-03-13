@@ -84,8 +84,53 @@ export default function TeamSection() {
                     {error}
                 </div>
             )}
-            {/* Ambient Background Glow matching the dark theme */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full -z-10 bg-[radial-gradient(ellipse_at_top,rgba(212,168,74,0.08),transparent_70%)] opacity-80" />
+            {/* Ambient cinematic shine */}
+            <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+                <div
+                    className="absolute"
+                    style={{
+                        left: "-12%",
+                        top: "6%",
+                        width: "34vw",
+                        maxWidth: "460px",
+                        height: "82vh",
+                        borderRadius: "999px",
+                        background:
+                            "radial-gradient(ellipse at center, rgba(240, 175, 45, 0.28) 0%, rgba(108, 153, 70, 0.18) 40%, rgba(0, 0, 0, 0) 76%)",
+                        filter: "blur(64px)",
+                        opacity: 0.76,
+                    }}
+                />
+                <div
+                    className="absolute"
+                    style={{
+                        right: "-10%",
+                        top: "8%",
+                        width: "32vw",
+                        maxWidth: "430px",
+                        height: "80vh",
+                        borderRadius: "999px",
+                        background:
+                            "radial-gradient(ellipse at center, rgba(243, 176, 43, 0.26) 0%, rgba(115, 159, 72, 0.16) 43%, rgba(0, 0, 0, 0) 77%)",
+                        filter: "blur(66px)",
+                        opacity: 0.72,
+                    }}
+                />
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background:
+                            "radial-gradient(ellipse at top, rgba(212, 168, 74, 0.12) 0%, rgba(0, 0, 0, 0) 58%), radial-gradient(ellipse at bottom, rgba(219, 164, 58, 0.12) 0%, rgba(0, 0, 0, 0) 62%)",
+                    }}
+                />
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background:
+                            "radial-gradient(circle at center, rgba(0, 0, 0, 0) 48%, rgba(0, 0, 0, 0.3) 100%)",
+                    }}
+                />
+            </div>
 
             <div className="w-full max-w-6xl px-6 md:px-12">
 

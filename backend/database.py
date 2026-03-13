@@ -19,7 +19,7 @@ def init_db():
         "email": "aarav@innovatex.com",
         "bio": "Great products start with simple ideas.",
         "quote": "Great products start with simple ideas.",
-        "photo_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
       },
       {
         "name": "Riya Mehta",
@@ -29,7 +29,7 @@ def init_db():
         "email": "riya@innovatex.com",
         "bio": "Technology should make life easier.",
         "quote": "Technology should make life easier.",
-        "photo_url": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
       },
       {
         "name": "Kabir Singh",
@@ -39,7 +39,7 @@ def init_db():
         "email": "kabir@innovatex.com",
         "bio": "Execution is the real strategy.",
         "quote": "Execution is the real strategy.",
-        "photo_url": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d"
       },
       {
         "name": "Ananya Gupta",
@@ -49,7 +49,7 @@ def init_db():
         "email": "ananya@innovatex.com",
         "bio": "Code is poetry written for machines.",
         "quote": "Code is poetry written for machines.",
-        "photo_url": "https://images.unsplash.com/photo-1528701800489-20be3c30c1d5?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1527980965255-d3b416303d12"
       },
       {
         "name": "Rohan Verma",
@@ -59,7 +59,7 @@ def init_db():
         "email": "rohan@innovatex.com",
         "bio": "Design is intelligence made visible.",
         "quote": "Design is intelligence made visible.",
-        "photo_url": "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7"
       },
       {
         "name": "Ishita Kapoor",
@@ -69,7 +69,7 @@ def init_db():
         "email": "ishita@innovatex.com",
         "bio": "Clean architecture builds scalable systems.",
         "quote": "Clean architecture builds scalable systems.",
-        "photo_url": "https://images.unsplash.com/photo-1539109136881-3be0616acf4c?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1531123897727-8f129e1688ce"
       },
       {
         "name": "Dev Patel",
@@ -79,7 +79,7 @@ def init_db():
         "email": "dev@innovatex.com",
         "bio": "Every bug is a lesson.",
         "quote": "Every bug is a lesson.",
-        "photo_url": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
       },
       {
         "name": "Neha Iyer",
@@ -89,7 +89,7 @@ def init_db():
         "email": "neha@innovatex.com",
         "bio": "Good design feels invisible.",
         "quote": "Good design feels invisible.",
-        "photo_url": "https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1519345182560-3f2917c472ef"
       },
       {
         "name": "Aditya Nair",
@@ -99,7 +99,7 @@ def init_db():
         "email": "aditya@innovatex.com",
         "bio": "Automation is the backbone of reliability.",
         "quote": "Automation is the backbone of reliability.",
-        "photo_url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1552058544-f2b08422138a"
       },
       {
         "name": "Sneha Chatterjee",
@@ -109,7 +109,7 @@ def init_db():
         "email": "sneha@innovatex.com",
         "bio": "Products succeed when users love them.",
         "quote": "Products succeed when users love them.",
-        "photo_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&q=80"
+        "photo_url": "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e"
       }
     ]
     for m in team_data:

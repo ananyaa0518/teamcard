@@ -12,10 +12,15 @@ except ModuleNotFoundError:
     from models import TeamMember, TeamMemberCreate, TeamMemberUpdate
 
 app = FastAPI(title="TeamCard Backend API")
-allowed_origins = ["http://localhost:3000"]
+allowed_origins = [
+    "http://localhost:3000",
+    "https://teamcard-hazel.vercel.app",
+]
 frontend_origin = os.getenv("FRONTEND_ORIGIN")
 if frontend_origin:
-    allowed_origins.append(frontend_origin)
+    normalized_origin = frontend_origin.rstrip("/")
+    if normalized_origin not in allowed_origins:
+        allowed_origins.append(normalized_origin)
 
 app.add_middleware(
     CORSMiddleware,

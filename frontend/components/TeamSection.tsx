@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 export type TeamMember = {
     id: string;
@@ -33,6 +33,7 @@ export default function TeamSection() {
     const [error, setError] = useState<string | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [ready, setReady] = useState(false);
+    const shouldReduceMotion = useReducedMotion();
 
     useEffect(() => {
         const controller = new AbortController();
@@ -88,7 +89,7 @@ export default function TeamSection() {
 
     if (isLoading) {
         return (
-            <section className="min-h-screen bg-[#000000] text-white pt-24 pb-32 px-6 md:px-12 relative overflow-hidden flex items-center justify-center">
+            <section className="min-h-screen bg-[#000000] text-white pt-20 pb-24 px-4 sm:px-6 md:px-12 relative overflow-hidden flex items-center justify-center">
                 <motion.div
                     className="h-8 w-8 rounded-full border-2 border-[#D4A84A] border-t-transparent"
                     animate={{ rotate: 360 }}
@@ -109,7 +110,7 @@ export default function TeamSection() {
     const marqueeMembers = members;
 
     return (
-        <section className="min-h-screen bg-[#000000] text-white pt-12 pb-6 relative overflow-hidden flex flex-col items-center justify-center">
+        <section className="min-h-screen bg-[#000000] text-white pt-10 sm:pt-12 pb-6 relative overflow-hidden flex flex-col items-center justify-center">
             {error && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-red-600/80 text-xs md:text-sm">
                     {error}
@@ -164,10 +165,10 @@ export default function TeamSection() {
                 />
             </div>
 
-            <div className="w-full max-w-6xl px-6 md:px-12">
+            <div className="w-full max-w-6xl px-4 sm:px-6 md:px-12">
 
                 {/* Top Section: 2 Large Auto-Cycling Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 w-full mb-4">
                     <AnimatePresence mode="popLayout" initial={false}>
                         {ready &&
                             featuredMembers.map((member, i) => (
@@ -176,8 +177,9 @@ export default function TeamSection() {
                                     initial={false}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                                    className="group relative flex flex-col justify-end rounded-3xl bg-[#0B0B0B] border border-[rgba(212,168,74,0.15)] shadow-[0_20px_40px_rgba(0,0,0,0.5)] overflow-hidden h-60 md:h-70"
+                                    transition={{ duration: shouldReduceMotion ? 0.35 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+                                    whileTap={{ scale: 0.995 }}
+                                    className="group relative flex flex-col justify-end rounded-3xl bg-[#0B0B0B] border border-[rgba(212,168,74,0.15)] shadow-[0_20px_40px_rgba(0,0,0,0.5)] overflow-hidden h-72 sm:h-80 md:h-92 lg:h-100"
                                 >
                                     {/* Background Image */}
                                     <div className="absolute inset-0">
@@ -186,33 +188,33 @@ export default function TeamSection() {
                                             alt={member.name}
                                             fill
                                             unoptimized
-                                            className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700"
+                                            className="object-cover object-center opacity-65 group-hover:opacity-80 group-active:opacity-80 transition-opacity duration-700"
                                         />
                                         {/* Gradient overlay for text readability */}
                                         <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
                                     </div>
 
-                                    <div className="relative z-10 p-4 md:p-5 flex flex-col h-full justify-end">
+                                    <div className="relative z-10 p-4 sm:p-5 md:p-6 flex flex-col h-full justify-end">
                                         <div>
-                                            <h3 className="text-3xl lg:text-4xl font-bold text-white mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                                            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                                                 {member.name}
                                             </h3>
-                                            <p className="text-[10px] font-bold tracking-[0.15em] text-[#D4A84A] uppercase mb-2">{member.role}</p>
+                                            <p className="text-[10px] sm:text-[11px] font-bold tracking-[0.15em] text-[#D4A84A] uppercase mb-2">{member.role}</p>
                                         </div>
                                         <div className="relative max-w-lg mb-2">
                                             <span className="absolute -top-4 -left-3 text-4xl text-[#D4A84A]/30 font-serif">"</span>
-                                            <p className="text-white/90 text-[14px] md:text-[16px] italic leading-relaxed pl-4 border-l-2 border-[#D4A84A]/50 relative z-10" style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}>
+                                            <p className="text-white/90 text-[13px] sm:text-[14px] md:text-[16px] italic leading-relaxed pl-4 border-l-2 border-[#D4A84A]/50 relative z-10" style={{ fontFamily: "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}>
                                                 {member.bio || "Part of the team shaping the future of fashion technology."}
                                             </p>
                                         </div>
 
-                                        <div className="pt-3 border-t border-white/10 flex items-center gap-6">
+                                        <div className="pt-3 border-t border-white/10 flex items-center gap-3 sm:gap-6">
                                             {member.linkedin_url && (
                                                 <a
                                                     href={member.linkedin_url}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide"
+                                                    className="text-white/60 hover:text-white active:text-white transition-colors text-sm font-medium tracking-wide min-h-11 inline-flex items-center"
                                                 >
                                                     LinkedIn
                                                 </a>
@@ -220,7 +222,7 @@ export default function TeamSection() {
                                             {member.email && (
                                                 <a
                                                     href={`mailto:${member.email}`}
-                                                    className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide ml-auto"
+                                                    className="text-white/60 hover:text-white active:text-white transition-colors text-sm font-medium tracking-wide ml-auto min-h-11 inline-flex items-center"
                                                 >
                                                     Contact
                                                 </a>
@@ -236,32 +238,32 @@ export default function TeamSection() {
             {/* Bottom Section: Infinite Marquee of Small Cards */}
             <div className="w-full relative py-0 mt-2">
                 {/* Fade edges */}
-                <div className="absolute left-0 top-0 bottom-0 w-32 bg-linear-to-r from-black to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-0 w-32 bg-linear-to-l from-black to-transparent z-10 pointer-events-none" />
+                <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-linear-to-r from-black to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-linear-to-l from-black to-transparent z-10 pointer-events-none" />
 
                 <div className="flex overflow-hidden group">
                     <motion.div
-                        className="flex gap-6 px-3"
+                        className="flex gap-3 sm:gap-4 md:gap-6 px-2 sm:px-3"
                         style={{ width: "max-content" }}
-                        animate={ready ? { x: ["0%", "-50%"] } : { x: "0%" }}
-                        transition={ready ? { repeat: Infinity, duration: 40, ease: "linear" } : undefined}
+                        animate={ready && !shouldReduceMotion ? { x: ["0%", "-50%"] } : { x: "0%" }}
+                        transition={ready && !shouldReduceMotion ? { repeat: Infinity, duration: 40, ease: "linear" } : undefined}
                     >
                         {[...marqueeMembers, ...marqueeMembers].map((member, idx) => (
                             <div
                                 key={`marquee-${member.id}-${idx}`}
-                                className="shrink-0 w-35 h-[42.5] rounded-2xl bg-[#0B0B0B] border border-white/5 overflow-hidden relative group/card cursor-pointer"
+                                className="shrink-0 w-32 sm:w-36 md:w-40 lg:w-44 aspect-square rounded-2xl bg-[#0B0B0B] border border-white/5 overflow-hidden relative group/card cursor-pointer"
                             >
                                 <Image
                                     src={getImageSrc(member.photo_url)}
                                     alt={member.name}
                                     fill
                                     unoptimized
-                                    className="object-cover opacity-70 group-hover/card:opacity-100 group-hover/card:scale-105 transition-all duration-500"
+                                    className="object-cover object-center opacity-75 group-hover/card:opacity-100 group-active/card:opacity-100 group-hover/card:scale-105 group-active/card:scale-105 transition-all duration-500"
                                 />
                                 <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-3 transform translate-y-2 group-hover/card:translate-y-0 transition-transform duration-300">
-                                    <h4 className="text-base font-bold text-white mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{member.name}</h4>
-                                    <p className="text-[9px] font-bold tracking-widest text-[#D4A84A] uppercase">{member.role}</p>
+                                <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3 md:p-3.5 transform translate-y-1 group-hover/card:translate-y-0 group-active/card:translate-y-0 transition-transform duration-300">
+                                    <h4 className="text-base sm:text-lg md:text-xl font-bold text-white mb-0.5 sm:mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{member.name}</h4>
+                                    <p className="text-[9px] sm:text-[10px] md:text-xs font-bold tracking-[0.16em] text-[#D4A84A] uppercase">{member.role}</p>
                                 </div>
                             </div>
                         ))}

@@ -3,6 +3,7 @@
 import {
     AnimatePresence,
     motion,
+    useReducedMotion,
     useMotionTemplate,
     useMotionValue,
     useSpring,
@@ -26,6 +27,8 @@ interface HeroSectionProps {
 export default function HeroSection({ onTransitionComplete }: HeroSectionProps) {
     const [cards, setCards] = useState<Card[]>([]);
     const [isDispersing, setIsDispersing] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
+    const shouldReduceMotion = useReducedMotion();
     const hasTriggeredTransitionRef = useRef(false);
     const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -83,6 +86,17 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
     const boxShadow = useMotionTemplate`0 ${shadowSpread}px ${shadowBlur}px rgba(212, 168, 74, 0.15)`;
 
     useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const mediaQuery = window.matchMedia("(pointer: coarse)");
+        const setFromMedia = () => setIsTouchDevice(mediaQuery.matches);
+        setFromMedia();
+
+        mediaQuery.addEventListener("change", setFromMedia);
+        return () => mediaQuery.removeEventListener("change", setFromMedia);
+    }, []);
+
+    useEffect(() => {
         return () => {
             if (transitionTimerRef.current) {
                 clearTimeout(transitionTimerRef.current);
@@ -131,15 +145,17 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
     }
 
     const getExitAnimation = (index: number) => {
+        const mobileDistance = isTouchDevice ? 0.72 : 1;
+
         if (index === 0) {
             return {
-                x: [0, -200, -400],
-                y: [0, 10, 20],
+                x: [0, -200 * mobileDistance, -400 * mobileDistance],
+                y: [0, 10, 20 * mobileDistance],
                 scale: [1, 0.95, 0.9],
                 opacity: [1, 0.8, 0],
                 rotateZ: [0, -2, -4],
                 transition: {
-                    duration: 0.6,
+                    duration: shouldReduceMotion ? 0.35 : 0.6,
                     ease: [0.32, 0.72, 0, 1] as const,
                     times: [0, 0.5, 1]
                 }
@@ -166,13 +182,13 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
         const baseOpacity = Math.max(0.3, 0.7 - offset * 0.08);
 
         return {
-            x: [0, dir.midX, dir.finalX],
-            y: [yOffset, dir.midY + yOffset, dir.finalY + yOffset],
+            x: [0, dir.midX * mobileDistance, dir.finalX * mobileDistance],
+            y: [yOffset, dir.midY * mobileDistance + yOffset, dir.finalY * mobileDistance + yOffset],
             scale: [scale, scale * 0.95, scale * 0.9],
             opacity: [baseOpacity, baseOpacity * 0.8, 0],
             rotateZ: [0, dir.rotateZ, dir.rotateZ * 1.5],
             transition: {
-                duration: 1.0,
+                duration: shouldReduceMotion ? 0.55 : 1.0,
                 ease: "easeInOut" as const,
                 delay: 0.15 + (index * 0.1),
                 times: [0, 0.5, 1]
@@ -182,7 +198,7 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
 
     return (
         <section
-            className="relative min-h-screen flex items-center justify-center overflow-hidden px-6"
+            className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 sm:px-6 md:px-8"
             style={{
                 backgroundColor: "#000000",
             }}
@@ -245,14 +261,16 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
             />
 
             {/* Center stack */}
-            <div className="relative z-20 flex flex-col items-center pt-[100px] md:pt-[120px]">
+            <div className="relative z-20 flex flex-col items-center pt-21.5 sm:pt-24.5 md:pt-30">
 
                 <motion.div
                     ref={stackRef}
-                    className="relative w-[280px] sm:w-[320px] md:w-[380px] h-[280px] sm:h-[320px] md:h-[380px]"
+                    className="relative w-59 h-59 sm:w-75 sm:h-75 md:w-90 md:h-90 lg:w-105 lg:h-105"
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
                     onMouseEnter={() => isHoveredTop.set(1)}
+                    onTouchStart={() => isHoveredTop.set(1)}
+                    onTouchEnd={handleMouseLeave}
                     style={{ perspective: 1200 }}
                 >
                     <AnimatePresence mode="popLayout" onExitComplete={handleExitComplete}>
@@ -298,7 +316,7 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
                                     }}
                                     exit={getExitAnimation(index)}
                                     transition={{
-                                        duration: 0.6,
+                                        duration: shouldReduceMotion ? 0.35 : 0.6,
                                         ease: [0.32, 0.72, 0, 1]
                                     }}
                                     whileHover={
@@ -306,6 +324,14 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
                                             ? {
                                                 y: yOffset - 4,
                                                 scale: scale + 0.01,
+                                            }
+                                            : undefined
+                                    }
+                                    whileTap={
+                                        isTop
+                                            ? {
+                                                y: yOffset - 2,
+                                                scale: scale + 0.008,
                                             }
                                             : undefined
                                     }
@@ -341,13 +367,13 @@ export default function HeroSection({ onTransitionComplete }: HeroSectionProps) 
                                         />
 
                                         {/* Bottom text overlay (Name & Role) */}
-                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6 flex flex-col justify-end">
+                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 sm:p-5 md:p-6 flex flex-col justify-end">
                                             <div className="mb-1">
-                                                <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                                                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight">
                                                     {card.name}
                                                 </h3>
                                             </div>
-                                            <p className="text-[11px] md:text-[12px] font-bold tracking-[0.15em] text-white/80 uppercase">
+                                            <p className="text-[10px] sm:text-[11px] md:text-[12px] font-bold tracking-[0.15em] text-white/80 uppercase">
                                                 {card.role}
                                             </p>
                                         </div>
